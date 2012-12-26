@@ -1,0 +1,8 @@
+# Fichier et répertoire à ignorer
+# @author: Abdoulaye Binta Bah
+
+.classpath
+/bin
+.project
+.settings
+.DS_Store
