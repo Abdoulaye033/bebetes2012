@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Fichier build.xml -->
+
+<project name="bebetes2012" default="compile" basedir=".">
+	
+	<description>
+		Génération de l'application		
+	</description>
+	
+	<!-- Propriétés spécifiques et par défaut, 
+	à mettre obligatoirement dans cet ordre -->
+	<property file="build.properties"/>
+	<property file="default.properties"/>
+
+<!-- Met dans le classpath les fichiers jar utilisés par le projet ; 
+la liste des fichers jar est lue dans le fichier de nom ${lib.dir}.-->
+<!-- Attention, la tâche -->
+<!-- available doir être dans une cible ! Ca n'est pas comme la tâche -->
+<!-- property qui peut être en dehors d'une cible -->
+<target name="ajoutelibounon">
+  <available file="${lib.dir}" type="dir" property="lib.present"/>
+</target>
+
+<!-- Si le projet dépend de sous-projet qui ont leur jar dans le -->
+<!-- sous-répertoire lib, mets les jar des sous-projets -->
+<!-- dans le classpath -->
+<target name="metClasspathBase">
+  <echo message="ajoutelibauclasspath"/>
+  <available file="${lib.dir}" type="dir" property="lib.present"/>
+  <path id="classpathBase">
+    <!-- Met les jar désignés dans dep.list que s'il y a un répertoire
+    lib -->
+    <fileset dir=".">
+        <include name="${lib.dir}/*.jar" if="lib.present"/>
+    </fileset>
+  </path>
+</target>
+
+<!-- Met le classpath complet pour compiler -->
+<target name="metClasspathComplet" depends="metClasspathBase">
+  <path id="classpathcomplet">
+    <path refid="classpathBase"/>
+    <!-- On ajoute ici le restant du classpath -->
+  </path>
+</target>
+
+<target name="init">
+  <mkdir dir="${classes.dir}"/>
+  <mkdir dir="${dist.dir}"/>
+  <tstamp/>
+</target>
+
+<target name="compile" depends="init,metClasspathComplet"
+        description="Compile toutes les classes de l'application">
+  <javac srcdir="${src.dir}" 
+         destdir="${classes.dir}"
+         debug="${debug}"
+         optimize="${optimize}"
+         deprecation="${deprecation}"
+         classpathref="classpathBase"/>
+</target>
+
+<target name="jar" depends="compile"
+        description="Construit le fichier jar de l'application"> 
+  <mkdir dir="${dist.dir}/lib"/>
+
+  <!-- Mets la classe principale dans le fichier MANIFEST.MF -->
+  <copy file="./MANIFEST.MF" tofile="./META-INF/MANIFEST.MF">
+    <filterset>
+      <filter token="main.class" value="${main.class}"/>
+    </filterset>
+  </copy>
+
+  <jar jarfile="${dist.dir}/lib/${project.name}-${project.version}.jar"
+       manifest="./META-INF/MANIFEST.MF"
+       basedir="${classes.dir}"/> 
+</target>
+
+<target name="clean"> 
+  <!-- Supprime les fichiers construits --> 
+  <delete dir="${build.dir}"/> 
+  <delete dir="${dist.dir}"/>
+  <delete dir="${api.dir}"/>
+  <delete dir="META-INF"/>
+</target>
+
+<target name="javadoc" depends="init">
+   <javadoc destdir="${api.dir}" 
+            use="true">
+     <packageset dir="${src.dir}">
+       <include name="**"/>
+     </packageset>
+   </javadoc>
+</target>
+        
+<target name="all" depends="clean,jar" 
+        description="nettoie et construit"/>
+
+<target name="voirprop">
+  <echo message="Répertoire des classes est ${classes.dir}"/>
+  <echo message="${ant.java.version}"/>
+</target>
+
+</project>
+
